@@ -1,0 +1,10 @@
+*.log
+.DS_Store
+*~
+.#*
+\#*#
+._*
+*.swp
+build/
+.lock-wscript
+*.node
