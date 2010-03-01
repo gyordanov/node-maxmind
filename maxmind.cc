@@ -59,7 +59,8 @@ namespace maxmind {
   
         String::Utf8Value db_path(args[0]->ToString());
   
-        db->gi = GeoIP_open(*db_path, GEOIP_INDEX_CACHE);
+        // db->gi = GeoIP_open(*db_path, GEOIP_INDEX_CACHE);
+        db->gi = GeoIP_open(*db_path, GEOIP_MEMORY_CACHE | GEOIP_INDEX_CACHE);
         if (db->gi == NULL) {
           ThrowException(Exception::Error(String::New("Error opening database.")));
         }
