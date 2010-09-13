@@ -42,23 +42,23 @@ namespace maxmind {
         Persistent<FunctionTemplate> db_persistent = Persistent<FunctionTemplate>::New(db_template);
         target->Set(String::New("DB"),db_persistent->GetFunction());
       }
-  
+
       static Handle<Value> New(const Arguments& args){
         HandleScope scope;
         DB *t = new DB();
         t->Wrap(args.Holder());
         return args.This();
       }
-  
+
       static Handle<Value> opendb(const Arguments& args){
         HandleScope scope;
         if(args.Length() < 0){
           ThrowException(Exception::Error(String::New("You must provide path to the GeoLiteCity.dat database.")));
         }
         DB *db = ObjectWrap::Unwrap<DB>(args.This());
-  
+
         String::Utf8Value db_path(args[0]->ToString());
-  
+
         // db->gi = GeoIP_open(*db_path, GEOIP_INDEX_CACHE);
         db->gi = GeoIP_open(*db_path, GEOIP_MEMORY_CACHE | GEOIP_INDEX_CACHE);
         if (db->gi == NULL) {
@@ -71,6 +71,7 @@ namespace maxmind {
       static Handle<Value> record_by_addr(const Arguments& args){
         HandleScope scope;
         GeoIPRecord    *gir;
+        char * ccity = NULL;
         if(args.Length() < 0){
           ThrowException(Exception::Error(String::New("You must provide IP address.")));
         }
@@ -90,8 +91,21 @@ namespace maxmind {
             NODE_PSYMBOL("region_code"),
             String::New(_mk_NA(gir->region)));
           result->Set(
-            NODE_PSYMBOL("regon_name"),
+            NODE_PSYMBOL("region_name"),
             String::New(_mk_NA(GeoIP_region_name_by_code(gir->country_code, gir->region))));
+
+          // convert the city to Utf8
+          // TODO: add tests for this and make sure it does not leak
+          if(NULL!=gir->city){
+            ccity=_iso_8859_1__utf8(gir->city);
+          }
+          if(NULL==ccity){
+            ccity=gir->city;
+          }
+          result->Set(
+            NODE_PSYMBOL("city"),
+            String::New(_mk_NA(ccity)));
+
           result->Set(
             NODE_PSYMBOL("city"),
             String::New(_mk_NA(gir->city)));
@@ -110,6 +124,12 @@ namespace maxmind {
           result->Set(
             NODE_PSYMBOL("area_code"),
             Number::New(gir->area_code));
+          result->Set(
+            NODE_PSYMBOL("country_code3"),
+            String::New(_mk_NA(gir->country_code3)));
+          result->Set(
+            NODE_PSYMBOL("country_name"),
+            String::New(_mk_NA(gir->country_name)));
           GeoIPRecord_delete(gir);
         }
         return scope.Close(result);
