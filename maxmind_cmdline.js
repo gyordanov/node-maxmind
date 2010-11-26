@@ -18,9 +18,13 @@ pp = function(p){
   return sys.puts(sys.inspect(p));
 };
 
-var test = require("./maxmind");
+var maxmind = require("./maxmind");
 var sys = require("sys");
-var db = new test.DB();
-pp(db.opendb("../stuff/GeoLiteCity.dat"));
-pp(db.record_by_addr("72.14.204.17"));
-pp(db.record_by_addr("sdfsdsdfsd"));
+var city_db = new maxmind.DB();
+var isp_db = new maxmind.DB();
+pp(city_db.opendb("../stuff/GeoLiteCity.dat"));
+pp(isp_db.opendb("../stuff/GeoIPISP.dat"));
+pp(city_db.record_by_addr("72.14.204.17"));
+pp(city_db.record_by_addr("sdfsdsdfsd"));
+pp(isp_db.name_by_addr("187.67.13.125"));
+pp(isp_db.name_by_addr("sdfsdsdfsd"));

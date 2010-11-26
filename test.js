@@ -23,8 +23,10 @@ pp = function(p){
   return sys.puts(sys.inspect(p));
 };
 
-db = new maxmind.DB();
-db.opendb("../stuff/GeoLiteCity.dat");
+city_db = new maxmind.DB();
+isp_db = new maxmind.DB();
+city_db.opendb("../stuff/GeoLiteCity.dat");
+isp_db.opendb("../stuff/GeoIPISP.dat");
 
 rl = function(request,response){
   var body = ' ';
@@ -32,16 +34,18 @@ rl = function(request,response){
     sys.puts('Geo ....');
     // var ip = request.connection.remoteAddress;
     var ip = "72.14.204.17";
-    var res = db.record_by_addr(ip);
+    var res = city_db.record_by_addr(ip);
     body = sys.inspect(res);
+  } else if(request.url == '/isp' && request.method == 'GET'){
+    body = isp_db.name_by_addr("187.67.13.125");
   }
   response.writeHeader(200, {
     "Content-Length": body.length,
-    "Content-Type": "text/plain"
+    "Content-Type": "text/plain; charset=utf-8"
   });
 
   response.write(body);
-  response.end();
+  response.end('utf-8');
   sys.puts('return ..');
 };
 

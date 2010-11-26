@@ -36,6 +36,7 @@ namespace maxmind {
         db_template->InstanceTemplate()->SetInternalFieldCount(1);
         NODE_SET_PROTOTYPE_METHOD(db_template,"opendb",opendb);
         NODE_SET_PROTOTYPE_METHOD(db_template,"record_by_addr",record_by_addr);
+        NODE_SET_PROTOTYPE_METHOD(db_template,"name_by_addr",name_by_addr);
 
         result_symbol = NODE_PSYMBOL("result");
 
@@ -73,7 +74,7 @@ namespace maxmind {
         GeoIPRecord    *gir;
         char * ccity = NULL;
         if(args.Length() < 0){
-          ThrowException(Exception::Error(String::New("You must provide IP address.")));
+          ThrowException(Exception::Error(String::New("You must provide an IP address.")));
         }
         DB *db = ObjectWrap::Unwrap<DB>(args.This());
         if (db->gi == NULL) {
@@ -134,6 +135,25 @@ namespace maxmind {
         }
         return scope.Close(result);
       }
+
+      static Handle<Value> name_by_addr(const Arguments& args){
+        HandleScope scope;
+        char * isp_name;
+        Local<String> result;
+        DB * db = ObjectWrap::Unwrap<DB>(args.This());
+
+        if(args.Length() < 0){ThrowException(Exception::Error(String::New("You must provide an IP address.")));}
+        if(db->gi == NULL){ThrowException(Exception::Error(String::New("Must open the database first.")));}
+
+        String::Utf8Value ipaddr(args[0]->ToString());
+        isp_name = GeoIP_name_by_addr(db->gi, *ipaddr);
+        if(!isp_name) isp_name = "";
+        isp_name = _iso_8859_1__utf8(isp_name);
+        result = String::New(isp_name);
+        
+        return scope.Close(result);
+      }
+
     private:
       static const char * _mk_NA( const char * p ){
        return p ? p : "N/A";
