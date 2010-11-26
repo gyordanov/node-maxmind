@@ -41,7 +41,7 @@ rl = function(request,response){
   });
 
   response.write(body);
-  response.close();
+  response.end();
   sys.puts('return ..');
 };
 
